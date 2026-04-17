@@ -63,7 +63,7 @@ export const UPGRADES: UpgradeDef[] = [
     tags: ["bonus", "legend"],
   },
   {
-    id: "fuschia-bonus",
+    id: "fuchsia-bonus",
     name: "Fuchsia Power",
     description: "Earn 5× points whenever you hit the Fuchsia color.",
     cost: 18,

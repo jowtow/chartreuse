@@ -15,7 +15,7 @@ export const UpgradeIdSchema = z.enum([
   "more-blues",
   "more-purples",
   "chartreuse-bonus",
-  "fuschia-bonus",
+  "fuchsia-bonus",
   "goldenrod-bonus",
 ]);
 

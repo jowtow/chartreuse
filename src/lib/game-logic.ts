@@ -61,7 +61,7 @@ export function getUpgradeMultiplier(
 ): number {
   if (upgrades.includes("chartreuse-bonus") && colorName === "chartreuse")
     return 10;
-  if (upgrades.includes("fuschia-bonus") && colorName === "fuchsia") return 5;
+  if (upgrades.includes("fuchsia-bonus") && colorName === "fuchsia") return 5;
   if (upgrades.includes("goldenrod-bonus") && colorName === "goldenrod")
     return 3;
   return 1;
