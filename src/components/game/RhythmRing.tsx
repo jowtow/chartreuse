@@ -1,11 +1,12 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { UpgradeId } from "@/types/game";
 import { getStellarWindow, getGreatWindow, getGoodWindow } from "@/lib/game-logic";
 
 interface RhythmRingProps {
-  beatProgress: number; // 0–1
+  beatProgress: number; // 0–1; 0 = ring at screen edge, 1 = ring arrives at shape
   shapeSize: number;
   upgrades: UpgradeId[];
 }
@@ -15,94 +16,118 @@ export default function RhythmRing({
   shapeSize,
   upgrades,
 }: RhythmRingProps) {
-  const outerRadius = shapeSize * 1.65;
+  // Use the viewport diagonal so the ring truly starts from off-screen
+  const [outerRadius, setOuterRadius] = useState(700);
+
+  useEffect(() => {
+    const update = () => {
+      const r = Math.ceil(
+        Math.sqrt(window.innerWidth ** 2 + window.innerHeight ** 2) / 2
+      );
+      setOuterRadius(r);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
   const ringThickness = 6;
 
-  // The moving ring: starts at shapeSize/2, expands to outerRadius
-  const minR = shapeSize * 0.5;
+  // Inner edge: ring arrives here at beatProgress = 1
+  const minR = shapeSize * 0.52;
+  // Outer edge: ring starts here at beatProgress = 0
   const maxR = outerRadius;
-  const currentR = minR + (maxR - minR) * beatProgress;
+  const range = maxR - minR;
 
-  // Compute zone boundaries (as ring radii)
+  // Ring travels INWARD: large → small
+  const currentR = maxR - range * beatProgress;
+
+  // Timing zone radii — all measured from minR outward
+  // (the ring passes through these as it travels inward)
   const stellarW = getStellarWindow(upgrades);
   const greatW = getGreatWindow(upgrades);
   const goodW = getGoodWindow(upgrades);
 
-  // Positions in radius space
-  const stellarR = minR + (maxR - minR) * (1 - stellarW);
-  const greatR = minR + (maxR - minR) * (1 - greatW);
-  const goodR = minR + (maxR - minR) * (1 - goodW);
+  // Zone outer boundaries (from the shape outward)
+  const stellarOuterR = minR + range * stellarW;
+  const greatOuterR   = minR + range * greatW;
+  const goodOuterR    = minR + range * goodW;
 
-  // Opacity: make the ring flash brighter near the outer edge
-  const ringOpacity = 0.5 + beatProgress * 0.5;
+  // Opacity: ring brightens as it closes in on the shape
+  const ringOpacity = 0.4 + beatProgress * 0.6;
+
+  const cx = outerRadius;
+  const cy = outerRadius;
+  const size = outerRadius * 2;
 
   return (
     <div
-      className="absolute inset-0 pointer-events-none"
+      className="absolute pointer-events-none"
       style={{
-        width: outerRadius * 2,
-        height: outerRadius * 2,
+        width: size,
+        height: size,
         left: "50%",
         top: "50%",
         transform: "translate(-50%, -50%)",
       }}
     >
-      {/* Good zone ring */}
       <svg
         className="absolute inset-0"
-        width={outerRadius * 2}
-        height={outerRadius * 2}
-        viewBox={`0 0 ${outerRadius * 2} ${outerRadius * 2}`}
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        overflow="visible"
       >
+        {/* ── Static zone bands near the inner (target) edge ── */}
+
+        {/* Good zone band */}
         <circle
-          cx={outerRadius}
-          cy={outerRadius}
-          r={goodR}
+          cx={cx}
+          cy={cy}
+          r={(greatOuterR + goodOuterR) / 2}
           fill="none"
-          stroke="rgba(250, 204, 21, 0.18)"
-          strokeWidth={goodR - greatR}
+          stroke="rgba(250, 204, 21, 0.15)"
+          strokeWidth={goodOuterR - greatOuterR}
         />
+        {/* Great zone band */}
         <circle
-          cx={outerRadius}
-          cy={outerRadius}
-          r={greatR}
+          cx={cx}
+          cy={cy}
+          r={(stellarOuterR + greatOuterR) / 2}
           fill="none"
           stroke="rgba(34, 211, 238, 0.18)"
-          strokeWidth={greatR - stellarR}
+          strokeWidth={greatOuterR - stellarOuterR}
         />
+        {/* Stellar zone band */}
         <circle
-          cx={outerRadius}
-          cy={outerRadius}
-          r={stellarR}
+          cx={cx}
+          cy={cy}
+          r={(minR + stellarOuterR) / 2}
           fill="none"
-          stroke="rgba(167, 243, 208, 0.25)"
-          strokeWidth={(maxR - minR) * stellarW}
+          stroke="rgba(127, 255, 0, 0.22)"
+          strokeWidth={stellarOuterR - minR}
         />
 
-        {/* Outer target ring */}
+        {/* ── Target ring: dashed circle at the inner edge ── */}
         <circle
-          cx={outerRadius}
-          cy={outerRadius}
-          r={outerRadius - ringThickness}
+          cx={cx}
+          cy={cy}
+          r={minR + ringThickness / 2}
           fill="none"
-          stroke="rgba(255,255,255,0.35)"
+          stroke="rgba(255,255,255,0.4)"
           strokeWidth={ringThickness}
-          strokeDasharray="12 8"
+          strokeDasharray="10 7"
         />
 
-        {/* Moving ring */}
+        {/* ── Moving ring (travels inward) ── */}
         <motion.circle
-          cx={outerRadius}
-          cy={outerRadius}
+          cx={cx}
+          cy={cy}
           r={currentR}
           fill="none"
           strokeWidth={ringThickness}
-          style={{
-            stroke: `rgba(127,255,0,${ringOpacity})`,
-          }}
-          animate={{
-            r: currentR,
-          }}
+          style={{ stroke: `rgba(127,255,0,${ringOpacity})` }}
+          animate={{ r: currentR }}
           transition={{ duration: 0.016 }}
         />
       </svg>
