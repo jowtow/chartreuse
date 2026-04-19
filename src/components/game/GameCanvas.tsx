@@ -156,8 +156,6 @@ export default function GameCanvas({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <ColorNameDisplay color={snapshot.targetColor} />
-
               {/* Shape + Ring arena */}
               <div
                 className="relative flex items-center justify-center"
@@ -176,6 +174,11 @@ export default function GameCanvas({
                   beatProgress={snapshot.beatProgress}
                   size={SHAPE_SIZE}
                 />
+
+                {/* Color name overlaid on top of the shape */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                  <ColorNameDisplay color={snapshot.targetColor} />
+                </div>
 
                 {/* Splash rating message */}
                 <SplashMessage

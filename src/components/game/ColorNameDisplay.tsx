@@ -22,8 +22,8 @@ export default function ColorNameDisplay({ color }: ColorNameDisplayProps) {
       <h2
         className="text-4xl md:text-5xl font-black uppercase tracking-wider"
         style={{
-          color: color.hex,
-          textShadow: `0 0 20px ${color.hex}88, 0 0 60px ${color.hex}44`,
+          color: "rgba(255,255,255,0.92)",
+          textShadow: "0 2px 12px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5)",
           fontFamily: "'Arial Black', Arial, sans-serif",
         }}
       >
